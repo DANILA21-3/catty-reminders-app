@@ -1,0 +1,9 @@
+cat > .gitignore << 'EOF'
+__pycache__/
+*.py[cod]
+venv/
+.env
+commit_hash.txt
+.pytest_cache/
+*.log
+EOF
