@@ -1,0 +1,13 @@
+[Unit]
+Description=app
+After=network.target
+
+[Service]
+Type=simple
+User=da
+WorkingDirectory=/home/da/lab1_OIS/catty
+ExecStart=/usr/bin/python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8181
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
