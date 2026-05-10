@@ -1,10 +1,13 @@
+#!/usr/bin/env python3
+
 import subprocess
 import json
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 PORT = 8080
-WORKSPACE = "/home/da/Рабочий стол/lab1_OIS1/"
+WORKSPACE = "/home/da/Рабочий стол/lab1_OIS1"
+DEPLOY_SCRIPT = f"{WORKSPACE}/deploy.sh"
 
 class WebhookHandler(BaseHTTPRequestHandler):
 
@@ -43,32 +46,12 @@ class WebhookHandler(BaseHTTPRequestHandler):
             print("No commit SHA")
             return
 
-        print("Updating code...")
-        subprocess.run(['git', 'fetch', 'origin'], cwd=WORKSPACE, check=True)
-        subprocess.run(['git', 'pull', 'origin', branch], cwd=WORKSPACE, check=True)
-
-        print("Running tests...")
-        result = subprocess.run(['python3', '-m', 'pytest', 'tests/', '-v'], cwd=WORKSPACE)
+        print("Running deploy script...")
+        result = subprocess.run([DEPLOY_SCRIPT, branch], cwd=WORKSPACE)
 
         if result.returncode != 0:
-            print("Tests failed")
+            print("Deploy failed")
             return
-
-        print("Tests passed")
-
-        hash_file = f"{WORKSPACE}/commit_hash.txt"
-        with open(hash_file, 'w') as f:
-            f.write(commit)
-
-        static_dir = f"{WORKSPACE}/static"
-        os.makedirs(static_dir, exist_ok=True)
-        deployref_file = f"{static_dir}/deployref.html"
-        with open(deployref_file, 'w') as f:
-            f.write(f'<meta name="deployref" content="{commit}">')
-        print(f"Deployref file created at {deployref_file}")
-
-        print("Restarting application...")
-        subprocess.run(['sudo', 'systemctl', 'restart', 'app'], check=True)
 
         print("Deploy complete")
 
