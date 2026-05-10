@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-
 import subprocess
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import os
 
 PORT = 8080
 WORKSPACE = "/home/da/Рабочий стол/lab1_OIS1/"
@@ -61,8 +60,15 @@ class WebhookHandler(BaseHTTPRequestHandler):
         with open(hash_file, 'w') as f:
             f.write(commit)
 
+        static_dir = f"{WORKSPACE}/static"
+        os.makedirs(static_dir, exist_ok=True)
+        deployref_file = f"{static_dir}/deployref.html"
+        with open(deployref_file, 'w') as f:
+            f.write(f'<meta name="deployref" content="{commit}">')
+        print(f"Deployref file created at {deployref_file}")
+
         print("Restarting application...")
-        subprocess.run(['sudo','systemctl', 'restart', 'app'], check=True)
+        subprocess.run(['sudo', 'systemctl', 'restart', 'app'], check=True)
 
         print("Deploy complete")
 
