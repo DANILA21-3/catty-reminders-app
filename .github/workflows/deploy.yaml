@@ -27,6 +27,6 @@ jobs:
             COMMIT_HASH=$(git rev-parse HEAD)
             echo "Deployed commit: $COMMIT_HASH"
 
-            echo "DEPLOY_REF=$COMMIT_HASH" > /home/da/lab2/.env
+            echo "DEPLOY_REF=$COMMIT_HASH" > /home/da/Рабочий стол/lab2/.env
             
             sudo systemctl restart app
