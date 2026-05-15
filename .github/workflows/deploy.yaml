@@ -20,20 +20,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 3161
           script: |
-            cd /home/da/lab2 
+            cd /home/da/lab2
             git fetch origin
-            git reset --hard origin/lab2   
+            git reset --hard origin/lab2
             
             COMMIT_HASH=$(git rev-parse HEAD)
-            echo "Commit hash: $COMMIT_HASH"
+            echo "Deployed commit: $COMMIT_HASH"
             
-            TARGET_FILE=$(grep -rEl 'meta name="deployref"' . --exclude-dir={venv,__pycache__,.git} | head -n 1)
-            if [ -n "$TARGET_FILE" ]; then
-                echo "Found target file: $TARGET_FILE"
-                sed -i 's/content="[^"]*"/content="'"$COMMIT_HASH"'"/' "$TARGET_FILE"
-                echo "Hash injected into $TARGET_FILE"
-            else
-                echo "WARNING: No file with deployref found"
-            fi
+            # Просто выводим хеш в лог, НЕ изменяем файлы приложения
+            echo "DEPLOY_REF=$COMMIT_HASH" > /home/da/lab2/.env
             
             sudo systemctl restart app
