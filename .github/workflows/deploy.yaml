@@ -1,0 +1,39 @@
+name: CD Deployment
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: course.prafdin.ru
+          username: da
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 3161
+          script: |
+            cd /home/da/lab2 
+            git fetch origin
+            git reset --hard origin/lab2   
+            
+            COMMIT_HASH=$(git rev-parse HEAD)
+            echo "Commit hash: $COMMIT_HASH"
+            
+            TARGET_FILE=$(grep -rEl 'meta name="deployref"' . --exclude-dir={venv,__pycache__,.git} | head -n 1)
+            if [ -n "$TARGET_FILE" ]; then
+                echo "Found target file: $TARGET_FILE"
+                sed -i 's/content="[^"]*"/content="'"$COMMIT_HASH"'"/' "$TARGET_FILE"
+                echo "Hash injected into $TARGET_FILE"
+            else
+                echo "WARNING: No file with deployref found"
+            fi
+            
+            sudo systemctl restart app
