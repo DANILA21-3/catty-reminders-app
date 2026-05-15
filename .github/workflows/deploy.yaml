@@ -20,13 +20,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 3161
           script: |
-            cd /home/da/lab2
+            cd /home/da/lab2_
             git fetch origin
-            git reset --hard origin/lab2
+            git reset --hard origin/lab2_
             
             COMMIT_HASH=$(git rev-parse HEAD)
             echo "Deployed commit: $COMMIT_HASH"
 
-            echo "DEPLOY_REF=$COMMIT_HASH" > /home/da/Рабочий стол/lab2/.env
+            echo "DEPLOY_REF=$COMMIT_HASH" > /home/da/lab2_/.env
             
             sudo systemctl restart app
