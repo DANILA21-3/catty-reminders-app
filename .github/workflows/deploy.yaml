@@ -21,12 +21,15 @@ jobs:
           port: 3161
           script: |
             cd /home/da/lab2_
-            git fetch origin
-            git reset --hard origin/lab2_
+            git fetch --all
+            git reset --hard ${{ github.sha }}
             
-            COMMIT_HASH=$(git rev-parse HEAD)
-            echo "Deployed commit: $COMMIT_HASH"
-
-            echo "DEPLOY_REF=$COMMIT_HASH" > /home/da/lab2_/.env
+            echo "DEPLOY_REF=${{ github.sha }}" > /home/da/lab2_/.env
+            
+            if [ ! -d ".venv" ]; then
+                python3 -m venv .venv
+            fi
+            source .venv/bin/activate
+            pip install -r requirements.txt
             
             sudo systemctl restart app
