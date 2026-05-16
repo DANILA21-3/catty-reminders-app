@@ -9,6 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Prepare lowercase repo name
+        id: prep
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "repo_lower=${REPO_LOWER}" >> $GITHUB_OUTPUT
+      
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -22,13 +28,13 @@ jobs:
             docker stop app-container || true
             docker rm app-container || true
             
-            docker pull ghcr.io/${{ github.repository }}:${{ github.sha }}
+            docker pull ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }}
             
             docker run -d \
               --name app-container \
               --restart unless-stopped \
               -p 8181:8181 \
               -e DEPLOY_REF="${{ github.sha }}" \
-              ghcr.io/${{ github.repository }}:${{ github.sha }}
+              ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }}
             
             docker image prune -f
