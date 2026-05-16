@@ -12,6 +12,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -20,16 +27,22 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 3161
           script: |
-            cd /home/da/lab2_
-            git fetch --all
-            git reset --hard ${{ github.sha }}
+            docker stop app-container || true
+            docker rm app-container || true
             
-            echo "DEPLOY_REF=${{ github.sha }}" > /home/da/lab2_/.env
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            if [ ! -d ".venv" ]; then
-                python3 -m venv .venv
-            fi
-            source .venv/bin/activate
-            pip install -r requirements.txt
+            IMAGE_TAG=ghcr.io/${{ github.repository }}:latest
             
-            sudo systemctl restart app
+            docker pull $IMAGE_TAG
+            
+            docker run -d \
+              --name app-container \
+              --restart unless-stopped \
+              -p 8181:8181 \
+              $IMAGE_TAG
+            
+            sleep 3
+            docker ps | grep app-container || echo "Container failed to start"
+            
+            docker image prune -f
