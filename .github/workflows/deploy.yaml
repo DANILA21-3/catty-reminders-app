@@ -30,19 +30,13 @@ jobs:
             docker stop app-container || true
             docker rm app-container || true
             
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            IMAGE_TAG=ghcr.io/${{ github.repository }}:latest
-            
-            docker pull $IMAGE_TAG
+            docker pull ghcr.io/${{ github.repository }}:latest
             
             docker run -d \
               --name app-container \
               --restart unless-stopped \
               -p 8181:8181 \
-              $IMAGE_TAG
-            
-            sleep 3
-            docker ps | grep app-container || echo "Container failed to start"
+              -e DEPLOY_REF="${{ github.sha }}" \
+              ghcr.io/${{ github.repository }}:latest
             
             docker image prune -f
