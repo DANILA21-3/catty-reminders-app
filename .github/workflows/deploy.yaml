@@ -9,23 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
-    
+      packages: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Prepare lowercase repo name
+
+      - name: Prepare repo name
         id: prep
         run: |
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "repo_lower=${REPO_LOWER}" >> $GITHUB_OUTPUT
-      
+          echo "repo_lower=${REPO_LOWER}" » $GITHUB_OUTPUT
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         env:
-          GHCR_PAT: ${{ secrets.GHCR_PAT }}
-          REPO_OWNER: DANILA21-3
+          DOCKER_PAT: ${{ secrets.DOCKER_PAT }}  
         with:
           host: course.prafdin.ru
           username: da
@@ -35,25 +34,27 @@ jobs:
             set -e
 
             echo "=== DEBUG ==="
-            echo "GHCR_PAT length: ${#GHCR_PAT}"
-            echo "Actor: ${{ github.actor }}"
-            echo "Repository: ${{ github.repository }}"
+            echo "DOCKER_PAT length: ${#DOCKER_PAT}"
             echo "SHA: ${{ github.sha }}"
-            echo "=============="
-            
-            echo "=== TOKEN length: ${#GHCR_PAT} ==="
+            echo "Repository: ${{ github.repository }}"
+            echo "============="
 
-            echo "$GHCR_PAT" | docker login ghcr.io -u $REPO_OWNER --password-stdin
+            if [ ${#DOCKER_PAT} -lt 10 ]; then
+              echo "ERROR: DOCKER_PAT secret is empty or not found!"
+              exit 1
+            fi
 
-            REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-            IMAGE="ghcr.io/${REPO_LOWER}:${{ github.sha }}"
+            echo "=== Logging into GHCR ==="
+            echo "$DOCKER_PAT" | docker login ghcr.io -u DANILA21-3 --password-stdin
+
+            IMAGE="ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}"
 
             echo "=== Pulling $IMAGE ==="
 
             docker stop app-container || true
             docker rm app-container || true
 
-            docker pull "$IMAGE" || { echo "ERROR: Failed to pull image"; exit 1; }
+            docker pull "$IMAGE" || { echo "ERROR: Pull failed"; exit 1; }
 
             docker run -d \
               --name app-container \
@@ -63,3 +64,4 @@ jobs:
               "$IMAGE"
 
             docker image prune -f
+            echo "=== Deployment completed successfully ==="
