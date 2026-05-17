@@ -1,8 +1,8 @@
 name: CD Deployment
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [ lab3, lab3*, main, master ]
 
 jobs:
   deploy:
