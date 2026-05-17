@@ -41,11 +41,9 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-        continue-on-error: true
   build-and-push:
     needs: [test, lint-dockerfile]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
