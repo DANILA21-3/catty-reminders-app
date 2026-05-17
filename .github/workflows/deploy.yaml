@@ -1,54 +1,33 @@
 name: CD Deployment
-
 on:
   push:
     branches: [ lab3, lab3*, main, master ]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: read
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Prepare repo name
-        id: prep
-        run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "repo_lower=${REPO_LOWER}" >> $GITHUB_OUTPUT
-
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1
         with:
           host: course.prafdin.ru
           username: da
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 3161
           script: |
-            set -e
-
-            echo "=== Logging into GHCR ==="
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u DANILA21-3 --password-stdin
             IMAGE="ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}"
-
-            echo "=== Pulling $IMAGE ==="
-
-            docker stop app-container || true
-            docker rm app-container || true
-
-            docker pull $IMAGE || { echo "ERROR: Pull failed"; exit 1; }
-
+            docker stop app-container 2>/dev/null || true
+            docker rm app-container 2>/dev/null || true
+            docker pull $IMAGE
             docker run -d \
               --name app-container \
               --restart unless-stopped \
               -p 8181:8181 \
               -e DEPLOY_REF=${{ github.sha }} \
               $IMAGE
-
             docker image prune -f
-            echo "=== Deployment completed successfully ==="
