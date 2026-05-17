@@ -19,12 +19,10 @@ jobs:
         id: prep
         run: |
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "repo_lower=${REPO_LOWER}" » $GITHUB_OUTPUT
+          echo "repo_lower=${REPO_LOWER}" >> $GITHUB_OUTPUT
 
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        env:
-          DOCKER_PAT: ${{ secrets.DOCKER_PAT }}  
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: course.prafdin.ru
           username: da
@@ -33,19 +31,8 @@ jobs:
           script: |
             set -e
 
-            echo "=== DEBUG ==="
-            echo "DOCKER_PAT length: ${#DOCKER_PAT}"
-            echo "SHA: ${{ github.sha }}"
-            echo "Repository: ${{ github.repository }}"
-            echo "============="
-
-            if [ ${#DOCKER_PAT} -lt 10 ]; then
-              echo "ERROR: DOCKER_PAT secret is empty or not found!"
-              exit 1
-            fi
-
             echo "=== Logging into GHCR ==="
-            echo "$DOCKER_PAT" | docker login ghcr.io -u DANILA21-3 --password-stdin
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             IMAGE="ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}"
 
@@ -54,14 +41,14 @@ jobs:
             docker stop app-container || true
             docker rm app-container || true
 
-            docker pull "$IMAGE" || { echo "ERROR: Pull failed"; exit 1; }
+            docker pull $IMAGE || { echo "ERROR: Pull failed"; exit 1; }
 
             docker run -d \
               --name app-container \
               --restart unless-stopped \
               -p 8181:8181 \
-              -e DEPLOY_REF="${{ github.sha }}" \
-              "$IMAGE"
+              -e DEPLOY_REF=${{ github.sha }} \
+              $IMAGE
 
             docker image prune -f
             echo "=== Deployment completed successfully ==="
