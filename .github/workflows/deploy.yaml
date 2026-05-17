@@ -25,6 +25,7 @@ jobs:
           username: da
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 3161
+          envs: GHCR_PAT
           script: |
             set -x  
             echo "=== TOKEN length: ${#GHCR_PAT} ==="
