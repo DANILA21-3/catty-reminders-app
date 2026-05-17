@@ -27,21 +27,18 @@ jobs:
           port: 3161
           script: |
             set -x
-            TOKEN="${{ secrets.GHCR_PAT }}"
-            echo "=== TOKEN length: ${#TOKEN} ==="
-            echo "${TOKEN}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             docker stop app-container || true
             docker rm app-container || true
             
-            echo "=== IMAGE: ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }} ==="
-            docker pull ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }}
+            docker pull ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }} || \
+            docker pull ghcr.io/${{ steps.prep.outputs.repo_lower }}:latest
             
             docker run -d \
               --name app-container \
               --restart unless-stopped \
               -p 8181:8181 \
               -e DEPLOY_REF="${{ github.sha }}" \
-              ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }}
+              ghcr.io/${{ steps.prep.outputs.repo_lower }}:latest
             
             docker image prune -f
