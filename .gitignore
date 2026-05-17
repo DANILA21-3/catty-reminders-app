@@ -5,7 +5,7 @@ venv/
 .env
 *.pyc
 
-# Tests
+# Test
 .pytest_cache/
 test_result.xml
 *.log
