@@ -2,6 +2,8 @@ name: CD Deployment
 on:
   push:
     branches: [ lab3, lab3*, main, master ]
+  release:
+    types: [published]
 jobs:
   deploy:
     runs-on: ubuntu-latest
