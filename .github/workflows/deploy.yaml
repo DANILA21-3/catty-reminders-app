@@ -26,12 +26,15 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 3161
           script: |
+            set -x  
+            echo "=== TOKEN length: ${#GHCR_PAT} ==="
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             docker stop app-container || true
             docker rm app-container || true
             
-            docker pull ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }}
+            echo "=== IMAGE: ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }} ==="
+            docker pull -v ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }}
             
             docker run -d \
               --name app-container \
