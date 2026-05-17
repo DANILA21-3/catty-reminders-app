@@ -12,6 +12,9 @@ jobs:
       packages: write
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Prepare lowercase repo name
         id: prep
         run: |
@@ -28,17 +31,20 @@ jobs:
           script: |
             set -x
             
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            REPO_LOWER="${{ steps.prep.outputs.repo_lower }}"
+            
             docker stop app-container || true
             docker rm app-container || true
             
-            docker pull ghcr.io/${{ steps.prep.outputs.repo_lower }}:${{ github.sha }} || \
-            docker pull ghcr.io/${{ steps.prep.outputs.repo_lower }}:latest
+            docker pull ghcr.io/${REPO_LOWER}:${{ github.sha }}
             
             docker run -d \
               --name app-container \
               --restart unless-stopped \
               -p 8181:8181 \
               -e DEPLOY_REF="${{ github.sha }}" \
-              ghcr.io/${{ steps.prep.outputs.repo_lower }}:latest
+              ghcr.io/${REPO_LOWER}:${{ github.sha }}
             
             docker image prune -f
