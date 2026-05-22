@@ -12,7 +12,7 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: mypass
           MARIADB_DATABASE: catty_reminders
-        ports: [ 3161:3161 ]
+        ports: [ 3306:3306 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
