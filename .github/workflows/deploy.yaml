@@ -1,5 +1,4 @@
 name: CD Deployment
-
 on:
   release:
     types: [published]
