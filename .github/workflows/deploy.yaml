@@ -20,5 +20,6 @@ jobs:
             export IMAGE=ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u DANILA21-3 --password-stdin
             docker compose pull
+            export DB_PASSWORD=mypass
             docker compose up -d --remove-orphans
             docker image prune -f
