@@ -1,11 +1,18 @@
 name: CI Pipeline
 on:
   push:
-    branches: [ "lab3", "lab3*" ]
+    branches: [ "lab4", "lab4*" ]
   pull_request:
-    branches: [ "lab3" ]
+    branches: [ "lab4" ]
 jobs:
   test:
+    services:
+      db:
+        image: mariadb:11.8.6-ubi9
+        env:
+          MARIADB_ROOT_PASSWORD: mypass
+          MARIADB_DATABASE: catty_reminders
+        ports: [ 3161:3161 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
