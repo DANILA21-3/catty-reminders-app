@@ -1,0 +1,20 @@
+services:
+  db:
+    image: mariadb:11.8.6-ubi9
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MARIADB_DATABASE: catty_reminders
+    volumes:
+      - db_data:/var/lib/mysql
+
+  app:
+    image: ${IMAGE}
+    restart: unless-stopped
+    ports:
+      - "8181:8181"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
