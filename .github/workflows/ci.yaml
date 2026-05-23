@@ -1,11 +1,20 @@
 name: CI Pipeline
+
 on:
   push:
-    branches: [ "lab3", "lab3*" ]
+    branches: [ "lab4", "lab4*" ]
   pull_request:
-    branches: [ "lab3" ]
+    branches: [ "lab4" ]
+
 jobs:
   test:
+    services:
+      db:
+        image: mariadb:11.8.6-ubi9
+        env:
+          MARIADB_ROOT_PASSWORD: mypass
+          MARIADB_DATABASE: catty_reminders
+        ports: [ 3306:3306 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -32,6 +41,7 @@ jobs:
         with:
           name: test_result
           path: test_result.xml
+
   lint-dockerfile:
     runs-on: ubuntu-latest
     steps:
@@ -41,6 +51,7 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
+
   build-and-push:
     needs: [test, lint-dockerfile]
     runs-on: ubuntu-latest
