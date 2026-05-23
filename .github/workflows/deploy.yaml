@@ -1,33 +1,38 @@
 name: CD Deployment
+
 on:
   release:
     types: [published]
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Copy docker-compose to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: course.prafdin.ru
+          username: da
+          port: 3161
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yaml"
+          target: "/home/da/catty-reminders-app"
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: course.prafdin.ru
           username: da
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 3161
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            cd /home/da/catty-reminders-app
+            export IMAGE=ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u DANILA21-3 --password-stdin
-            IMAGE="ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}"
-            docker stop app-container 2>/dev/null || true
-            docker rm app-container 2>/dev/null || true
-            docker pull $IMAGE
-            docker run -d \
-              --name app-container \
-              --restart unless-stopped \
-              -p 8181:8181 \
-              -e DEPLOY_REF=${{ github.sha }} \
-              $IMAGE
+            docker compose pull
+            export DB_PASSWORD=mypass
+            docker compose up -d --remove-orphans
             docker image prune -f
