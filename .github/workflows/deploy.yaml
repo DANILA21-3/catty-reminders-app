@@ -1,4 +1,5 @@
 name: CD Deployment
+
 on:
   release:
     types: [published]
@@ -7,6 +8,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: course.prafdin.ru
+          username: da
+          port: 3161
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yaml"
+          target: "/home/da/catty-reminders-app"
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
