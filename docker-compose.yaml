@@ -1,6 +1,7 @@
 services:
   db:
     image: mariadb:11.8.6-ubi9
+    container_name: da-db
     restart: unless-stopped
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
@@ -10,6 +11,7 @@ services:
 
   app:
     image: ${IMAGE}
+    container_name: da-app
     restart: unless-stopped
     ports:
       - "8181:8181"
