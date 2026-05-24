@@ -1,0 +1,79 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "lab4", "lab4*" ]
+  pull_request:
+    branches: [ "lab4" ]
+
+jobs:
+  test:
+    services:
+      db:
+        image: mariadb:11.8.6-ubi9
+        env:
+          MARIADB_ROOT_PASSWORD: mypass
+          MARIADB_DATABASE: catty_reminders
+        ports: [ 3306:3306 ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest playwright pytest-playwright
+          playwright install --with-deps chromium
+      - name: Start application
+        run: |
+          python -m uvicorn app.main:app --host 0.0.0.0 --port 8181 &
+          sleep 5
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v --junitxml=test_result.xml
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test_result
+          path: test_result.xml
+
+  lint-dockerfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+  build-and-push:
+    needs: [test, lint-dockerfile]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: DANILA21-3
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/danila21-3/catty-reminders-app:latest
+            ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}
+          build-args: |
+            DEPLOY_REF=${{ github.sha }}
