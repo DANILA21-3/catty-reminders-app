@@ -1,0 +1,29 @@
+services:
+  backend:
+    image: ${IMAGE}
+    container_name: da-app
+    restart: unless-stopped
+    ports:
+      - "8181:8181"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=catty
+      - DB_PASSWORD=cattypass
+      - DB_NAME=catty_reminders
+
+  db:
+    image: mariadb:10.11
+    container_name: da-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: mypass
+      MARIADB_DATABASE: catty_reminders
+      MARIADB_USER: catty
+      MARIADB_PASSWORD: cattypass
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
