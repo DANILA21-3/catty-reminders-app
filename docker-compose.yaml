@@ -26,4 +26,4 @@ services:
       - db_data:/var/lib/mysql
 
 volumes:
-  db_data:
+  mariadb_data:
