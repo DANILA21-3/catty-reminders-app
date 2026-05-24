@@ -24,3 +24,6 @@ services:
       MARIADB_PASSWORD: cattypass
     volumes:
       - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
