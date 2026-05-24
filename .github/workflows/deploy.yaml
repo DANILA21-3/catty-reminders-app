@@ -1,5 +1,4 @@
-name: CD Deployment
-
+name: CD Pipeline
 on:
   release:
     types: [published]
@@ -8,10 +7,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Copy docker-compose to server
+      - name: Copy docker-compose.yaml
         uses: appleboy/scp-action@v0.1.7
         with:
           host: course.prafdin.ru
@@ -21,7 +20,7 @@ jobs:
           source: "docker-compose.yaml"
           target: "/home/da/catty-reminders-app"
 
-      - name: Deploy via SSH
+      - name: Deploy application
         uses: appleboy/ssh-action@v1
         with:
           host: course.prafdin.ru
@@ -31,8 +30,9 @@ jobs:
           script: |
             cd /home/da/catty-reminders-app
             export IMAGE=ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}
+            echo "IMAGE=${IMAGE}" > .env
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u DANILA21-3 --password-stdin
+            docker compose down || true
             docker compose pull
-            export DB_PASSWORD=mypass
-            docker compose up -d --remove-orphans
-            docker image prune -f
+            docker compose up -d --force-recreate
+            docker image prune -f || true
