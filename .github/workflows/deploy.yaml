@@ -1,0 +1,47 @@
+name: CD Deployment
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: course.prafdin.ru
+          username: da
+          port: 3161
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yaml"
+          target: "/home/da/git/catty-reminders-app"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: course.prafdin.ru
+          username: da
+          port: 3161
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/da/git/catty-reminders-app
+            
+            export IMAGE=ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}
+            export DEPLOY_REF=${{ github.sha }}
+            export DB_PASSWORD=mypass
+            
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u DANILA21-3 --password-stdin
+            
+            docker compose down
+            docker compose pull
+            docker compose up -d --remove-orphans --force-recreate
+            docker image prune -f
