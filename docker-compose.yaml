@@ -1,6 +1,5 @@
-version: '3.8'
 services:
-  backend:  
+  backend:
     image: ${IMAGE}
     container_name: da-app
     restart: unless-stopped
@@ -15,7 +14,7 @@ services:
       - DB_NAME=catty_reminders
 
   db:
-    image: mariadb:10.11   
+    image: mariadb:10.11
     container_name: da-db
     restart: unless-stopped
     environment:
