@@ -3,12 +3,11 @@ services:
     image: ${IMAGE}
     container_name: da-app
     restart: unless-stopped
-    ports:
-      - "8181:8181"
+    network_mode: host
     depends_on:
       - db
     environment:
-      - DB_HOST=db
+      - DB_HOST=localhost
       - DB_USER=catty
       - DB_PASSWORD=cattypass
       - DB_NAME=catty_reminders
@@ -17,6 +16,7 @@ services:
     image: mariadb:10.11
     container_name: da-db
     restart: unless-stopped
+    network_mode: host
     environment:
       MARIADB_ROOT_PASSWORD: mypass
       MARIADB_DATABASE: catty_reminders
@@ -24,6 +24,3 @@ services:
       MARIADB_PASSWORD: cattypass
     volumes:
       - db_data:/var/lib/mysql
-
-volumes:
-  db_data:
