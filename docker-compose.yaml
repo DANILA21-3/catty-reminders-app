@@ -11,6 +11,7 @@ services:
       - DB_USER=catty
       - DB_PASSWORD=cattypass
       - DB_NAME=catty_reminders
+      - DEPLOY_REF=${DEPLOY_REF}
 
   db:
     image: mariadb:10.11
@@ -23,7 +24,7 @@ services:
       MARIADB_USER: catty
       MARIADB_PASSWORD: cattypass
     volumes:
-      - db_data:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
 
 volumes:
   mariadb_data:
