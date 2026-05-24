@@ -18,7 +18,7 @@ jobs:
           port: 3161
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "docker-compose.yaml"
-          target: "/home/da/catty-reminders-app"
+          target: "/home/da/git/catty-reminders-app"
 
       - name: Deploy application
         uses: appleboy/ssh-action@v1
@@ -28,7 +28,7 @@ jobs:
           port: 3161
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/da/catty-reminders-app
+            cd /home/da/git/catty-reminders-app
             
             export IMAGE=ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}
             echo "IMAGE=${IMAGE}" > .env
