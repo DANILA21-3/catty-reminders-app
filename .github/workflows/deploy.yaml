@@ -36,7 +36,6 @@ jobs:
             cd /home/da/git/catty-reminders-app
             
             export IMAGE=ghcr.io/danila21-3/catty-reminders-app:${{ github.sha }}
-            export DEPLOY_REF=${{ github.sha }}
             export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u DANILA21-3 --password-stdin
