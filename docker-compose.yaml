@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      MARIADB_ROOT_PASSWORD: mypass
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
       MARIADB_DATABASE: catty_reminders
       MARIADB_USER: catty
       MARIADB_PASSWORD: cattypass
